@@ -31,7 +31,7 @@ function randomFact() {
 
 export default function ChatRoom() {
   const { socket, connected } = useSocket();
-  const { start: startRTC, stop: stopRTC, localStream, remoteStream, mediaError } = useWebRTC(socket);
+  const { start: startRTC, stop: stopRTC, ensureLocalStream, localStream, remoteStream, mediaError } = useWebRTC(socket);
   const { logout } = useAuth();
   const navigate = useNavigate();
   const localVideoRef = useRef(null);
@@ -106,8 +106,10 @@ export default function ChatRoom() {
     if (remoteVideoRef.current && remoteStream) remoteVideoRef.current.srcObject = remoteStream;
   }, [remoteStream]);
 
-  const findChat = () => {
+  const findChat = async () => {
     if (!connected) return;
+    const stream = await ensureLocalStream();
+    if (!stream) return;
     setStage("chatting");
     enterWaiting();
   };
