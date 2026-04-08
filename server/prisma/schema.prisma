@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  hashedEmail  String    @unique
+  createdAt    DateTime  @default(now())
+  isBanned     Boolean   @default(false)
+  banExpiresAt DateTime?
+  reportCount  Int       @default(0)
+
+  reports      Report[]  @relation("ReportedUser")
+  filedReports Report[]  @relation("Reporter")
+
+  @@index([hashedEmail])
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reason     String
+  createdAt  DateTime @default(now())
+  reporterId String
+  reportedId String
+
+  reporter   User     @relation("Reporter",      fields: [reporterId], references: [id])
+  reported   User     @relation("ReportedUser",  fields: [reportedId], references: [id])
+
+  @@index([reportedId])
+  @@index([createdAt])
+}
