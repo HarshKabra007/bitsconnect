@@ -13,7 +13,10 @@ function verifyToken(token) {
 }
 
 function requireAuth(req, res, next) {
-  const token = req.cookies?.token;
+  const bearer = req.headers.authorization?.startsWith("Bearer ")
+    ? req.headers.authorization.slice(7)
+    : null;
+  const token = bearer || req.cookies?.token;
   const payload = token && verifyToken(token);
   if (!payload) return res.status(401).json({ error: "Unauthorized" });
   req.userId = payload.uid;

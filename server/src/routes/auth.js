@@ -55,7 +55,7 @@ router.post("/dev", async (req, res) => {
     secure: process.env.NODE_ENV === "production",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
-  res.json({ ok: true });
+  res.json({ ok: true, token });
 });
 
 router.post("/logout", (req, res) => {
