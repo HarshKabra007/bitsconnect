@@ -114,5 +114,5 @@ export function useWebRTC(socket) {
     localStreamRef.current = null;
   }, []);
 
-  return { start, stop, localStream, remoteStream, mediaError };
+  return { start, stop, ensureLocalStream, localStream, remoteStream, mediaError };
 }
