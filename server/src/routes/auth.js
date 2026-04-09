@@ -31,7 +31,7 @@ router.get("/google/callback", (req, res, next) => {
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    res.redirect(`${CLIENT_URL}/chat`);
+    res.redirect(`${CLIENT_URL}/chat?token=${encodeURIComponent(token)}`);
   })(req, res, next);
 });
 

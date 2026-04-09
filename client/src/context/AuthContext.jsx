@@ -3,6 +3,20 @@ import { createContext, useContext, useEffect, useState } from "react";
 const API = import.meta.env.VITE_API_URL ?? "";
 const AuthContext = createContext(null);
 
+// On first load, grab token from URL (Google OAuth redirect) and save it.
+(function captureTokenFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const t = params.get("token");
+  if (t) {
+    localStorage.setItem("token", t);
+    // Clean the URL so token isn't visible
+    params.delete("token");
+    const clean = params.toString();
+    const newUrl = window.location.pathname + (clean ? `?${clean}` : "");
+    window.history.replaceState({}, "", newUrl);
+  }
+})();
+
 function authHeaders() {
   const t = localStorage.getItem("token");
   return t ? { Authorization: `Bearer ${t}` } : {};
