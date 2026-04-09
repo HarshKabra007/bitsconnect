@@ -17,78 +17,72 @@ export default function Landing() {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
-      {/* Animated gradient background */}
+      {/* Animated mesh gradient background */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-zinc-950" />
-        <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] animate-slow-spin">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-500/10 rounded-full blur-[128px]" />
-          <div className="absolute top-1/2 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-[128px]" />
-          <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-blue-500/8 rounded-full blur-[128px]" />
-        </div>
-        {/* Grid overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
-          }}
-        />
-        {/* Floating particles */}
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 rounded-full bg-white/20 animate-float"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 8}s`,
-              animationDuration: `${6 + Math.random() * 8}s`,
-            }}
-          />
-        ))}
+        <div className="absolute inset-0 bg-[#0a0a0f]" />
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-gradient-to-br from-red-600/25 to-transparent rounded-full blur-[120px] animate-drift-1" />
+        <div className="absolute top-[10%] right-[-15%] w-[500px] h-[500px] bg-gradient-to-bl from-violet-600/20 to-transparent rounded-full blur-[120px] animate-drift-2" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[550px] h-[550px] bg-gradient-to-tr from-blue-600/15 to-transparent rounded-full blur-[120px] animate-drift-3" />
+        <div className="absolute top-[40%] left-[50%] w-[400px] h-[400px] bg-gradient-to-b from-rose-500/10 to-transparent rounded-full blur-[100px] animate-drift-4" />
+        {/* Noise texture overlay */}
+        <div className="absolute inset-0 opacity-[0.015]" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        }} />
       </div>
 
-      <div className="max-w-lg w-full relative">
-        <div className="inline-block px-4 py-1.5 rounded-full border border-zinc-700/50 text-xs tracking-widest uppercase text-zinc-400 mb-8 backdrop-blur-sm bg-zinc-900/30">
-          BITS Pilani · Pilani Campus
-        </div>
-        <h1 className="text-5xl sm:text-7xl font-bold tracking-tight">
-          BITS<span className="text-red-500">Connect</span>
-        </h1>
-        <p className="mt-4 text-zinc-400 text-lg">
-          Talk to a random BITSian. Anonymously.
-        </p>
+      {/* Glass card */}
+      <div className="relative max-w-md w-full">
+        <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 via-violet-500/20 to-blue-500/20 rounded-3xl blur-xl opacity-60 animate-glow" />
+        <div className="relative backdrop-blur-xl bg-white/[0.04] border border-white/[0.08] rounded-3xl px-8 py-12 shadow-2xl shadow-black/40">
+          {/* Subtle inner highlight */}
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none" />
 
-        {online !== null && (
-          <p className="mt-6 text-sm text-zinc-500">
-            <span className="relative inline-block w-2 h-2 rounded-full bg-green-500 mr-2">
-              <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75" />
-            </span>
-            {online} online now
-          </p>
-        )}
+          <div className="relative">
+            <div className="inline-block px-4 py-1.5 rounded-full border border-white/10 text-[10px] tracking-[0.2em] uppercase text-zinc-400 mb-8 bg-white/[0.03] backdrop-blur-sm">
+              BITS Pilani · Pilani Campus
+            </div>
 
-        <a
-          href={`${API}/api/auth/google`}
-          className="mt-10 inline-flex items-center gap-3 bg-white text-zinc-900 font-semibold px-8 py-3.5 rounded-xl hover:bg-zinc-100 hover:scale-105 transition-all duration-200 shadow-lg shadow-white/5"
-        >
-          <GoogleIcon />
-          Sign in with Google
-        </a>
+            <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-none">
+              BITS<span className="bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">Connect</span>
+            </h1>
 
-        <p className="mt-4 text-xs text-zinc-500">
-          Only <code className="bg-zinc-800/50 px-1.5 py-0.5 rounded text-zinc-400">@pilani.bits-pilani.ac.in</code> accounts allowed.
-        </p>
+            <p className="mt-4 text-zinc-400 text-base leading-relaxed">
+              Talk to a random BITSian.<br />Anonymously.
+            </p>
 
-        {error && (
-          <div className="mt-6 text-sm text-red-400 border border-red-900/50 bg-red-950/30 rounded-lg p-3 backdrop-blur-sm">
-            {decodeURIComponent(error)}
+            {online !== null && (
+              <div className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06]">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                </span>
+                <span className="text-xs text-zinc-400">{online} online now</span>
+              </div>
+            )}
+
+            <a
+              href={`${API}/api/auth/google`}
+              className="mt-8 w-full inline-flex items-center justify-center gap-3 bg-white/[0.9] backdrop-blur-sm text-zinc-900 font-semibold px-6 py-3.5 rounded-2xl hover:bg-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-lg shadow-black/20"
+            >
+              <GoogleIcon />
+              Sign in with Google
+            </a>
+
+            <p className="mt-5 text-[11px] text-zinc-500">
+              Only <code className="bg-white/[0.06] px-1.5 py-0.5 rounded text-zinc-400 font-mono text-[10px]">@pilani.bits-pilani.ac.in</code> accounts
+            </p>
+
+            {error && (
+              <div className="mt-6 text-sm text-red-400 border border-red-500/20 bg-red-500/[0.06] rounded-xl p-3 backdrop-blur-sm">
+                {decodeURIComponent(error)}
+              </div>
+            )}
           </div>
-        )}
-
-        <div className="mt-16 text-xs text-zinc-600">
-          Chats are ephemeral. Nothing is stored. Stay kind.
         </div>
+
+        <p className="mt-8 text-[11px] text-zinc-600 tracking-wide">
+          Chats are ephemeral. Nothing is stored. Stay kind.
+        </p>
       </div>
     </div>
   );
