@@ -133,7 +133,7 @@ export default function Landing() {
           </div>
 
           <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-none">
-            BITS<span className="bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">Connect</span>
+            bits<span className="bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">TV</span>
           </h1>
 
           <p className="mt-4 text-zinc-400 text-base leading-relaxed">

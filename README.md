@@ -1,6 +1,6 @@
-# BITSConnect
+# bitsTV
 
-Anonymous Omegle-style chat for BITS Pilani — Pilani Campus students.
+Anonymous Omegle-style video chat for BITS Pilani — Pilani Campus students.
 
 ## Privacy first
 - Google OAuth, restricted to `@pilani.bits-pilani.ac.in`.
