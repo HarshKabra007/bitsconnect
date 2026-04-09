@@ -309,7 +309,6 @@ export default function ChatRoom() {
               </form>
             </div>
           </div>
-        </div>
       </div>
 
       <ReportModal
