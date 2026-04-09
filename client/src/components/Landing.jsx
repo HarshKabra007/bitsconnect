@@ -127,7 +127,6 @@ export default function Landing() {
   const { canvasRef, mouseRef } = useParticleCanvas();
   const [ripples, setRipples] = useState([]);
   const rippleIdRef = useRef(0);
-  const [signingIn, setSigningIn] = useState(false);
 
   useEffect(() => {
     fetch(`${API}/api/online`)
@@ -221,33 +220,13 @@ export default function Landing() {
               </div>
             )}
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (signingIn) return;
-                setSigningIn(true);
-                setTimeout(() => {
-                  window.location.href = `${API}/api/auth/google`;
-                }, 300);
-              }}
-              disabled={signingIn}
-              className="group mt-8 w-full inline-flex items-center justify-center gap-3 bg-white/[0.9] backdrop-blur-sm text-zinc-900 font-semibold px-6 py-3.5 rounded-2xl hover:bg-white hover:scale-[1.03] hover:shadow-xl hover:shadow-red-500/10 active:scale-[0.97] transition-all duration-200 shadow-lg shadow-black/20 animate-fade-in-up animation-delay-300 disabled:opacity-80"
+            <a
+              href={`${API}/api/auth/google`}
+              className="relative z-50 mt-8 w-full inline-flex items-center justify-center gap-3 bg-white text-zinc-900 font-semibold px-6 py-3.5 rounded-2xl hover:bg-zinc-100 active:scale-[0.97] transition-all duration-200 shadow-lg shadow-black/20 animate-fade-in-up animation-delay-300"
             >
-              {signingIn ? (
-                <>
-                  <svg className="animate-spin h-5 w-5 text-zinc-900" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  <span>Redirecting to Google...</span>
-                </>
-              ) : (
-                <>
-                  <GoogleIcon />
-                  <span className="group-hover:tracking-wider transition-all duration-200">Sign in with Google</span>
-                </>
-              )}
-            </button>
+              <GoogleIcon />
+              Sign in with Google
+            </a>
 
             <p className="mt-5 text-[11px] text-zinc-500 animate-fade-in-up animation-delay-400">
               Only <code className="bg-white/[0.06] px-1.5 py-0.5 rounded text-zinc-400 font-mono text-[10px]">@pilani.bits-pilani.ac.in</code> accounts
