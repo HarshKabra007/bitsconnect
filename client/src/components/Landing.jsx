@@ -221,10 +221,17 @@ export default function Landing() {
               </div>
             )}
 
-            <a
-              href={`${API}/api/auth/google`}
-              onClick={() => setSigningIn(true)}
-              className="group mt-8 w-full inline-flex items-center justify-center gap-3 bg-white/[0.9] backdrop-blur-sm text-zinc-900 font-semibold px-6 py-3.5 rounded-2xl hover:bg-white hover:scale-[1.03] hover:shadow-xl hover:shadow-red-500/10 active:scale-[0.97] transition-all duration-200 shadow-lg shadow-black/20 animate-fade-in-up animation-delay-300"
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (signingIn) return;
+                setSigningIn(true);
+                setTimeout(() => {
+                  window.location.href = `${API}/api/auth/google`;
+                }, 300);
+              }}
+              disabled={signingIn}
+              className="group mt-8 w-full inline-flex items-center justify-center gap-3 bg-white/[0.9] backdrop-blur-sm text-zinc-900 font-semibold px-6 py-3.5 rounded-2xl hover:bg-white hover:scale-[1.03] hover:shadow-xl hover:shadow-red-500/10 active:scale-[0.97] transition-all duration-200 shadow-lg shadow-black/20 animate-fade-in-up animation-delay-300 disabled:opacity-80"
             >
               {signingIn ? (
                 <>
@@ -232,7 +239,7 @@ export default function Landing() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  <span>Connecting...</span>
+                  <span>Redirecting to Google...</span>
                 </>
               ) : (
                 <>
@@ -240,7 +247,7 @@ export default function Landing() {
                   <span className="group-hover:tracking-wider transition-all duration-200">Sign in with Google</span>
                 </>
               )}
-            </a>
+            </button>
 
             <p className="mt-5 text-[11px] text-zinc-500 animate-fade-in-up animation-delay-400">
               Only <code className="bg-white/[0.06] px-1.5 py-0.5 rounded text-zinc-400 font-mono text-[10px]">@pilani.bits-pilani.ac.in</code> accounts
