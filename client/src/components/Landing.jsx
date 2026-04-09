@@ -147,10 +147,6 @@ export default function Landing() {
         >
           {/* Card border glow on hover */}
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none" />
-          {/* Reflective shine */}
-          <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
-            <div className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/[0.03] to-transparent animate-shine" />
-          </div>
 
           <div className="relative" style={{ transform: "translateZ(40px)" }}>
             <div className="inline-block px-4 py-1.5 rounded-full border border-white/10 text-[10px] tracking-[0.2em] uppercase text-zinc-400 mb-8 bg-white/[0.03] backdrop-blur-sm animate-fade-in-down">
