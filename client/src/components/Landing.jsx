@@ -3,16 +3,130 @@ import { useSearchParams } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL ?? "";
 
+// Interactive particles that react to mouse
+function useParticleCanvas() {
+  const canvasRef = useRef(null);
+  const mouseRef = useRef({ x: -1000, y: -1000 });
+  const particlesRef = useRef([]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let animId;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    // Init particles
+    const count = 80;
+    particlesRef.current = Array.from({ length: count }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      radius: Math.random() * 2 + 0.5,
+      baseAlpha: Math.random() * 0.4 + 0.1,
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const mx = mouseRef.current.x;
+      const my = mouseRef.current.y;
+      const particles = particlesRef.current;
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+
+        // Mouse repulsion
+        const dx = p.x - mx;
+        const dy = p.y - my;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 150) {
+          const force = (150 - dist) / 150;
+          p.vx += (dx / dist) * force * 0.3;
+          p.vy += (dy / dist) * force * 0.3;
+        }
+
+        // Damping
+        p.vx *= 0.98;
+        p.vy *= 0.98;
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Wrap around
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+
+        // Glow near mouse
+        const glowDist = Math.sqrt((p.x - mx) ** 2 + (p.y - my) ** 2);
+        const glow = glowDist < 200 ? (200 - glowDist) / 200 : 0;
+        const alpha = p.baseAlpha + glow * 0.6;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius + glow * 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(239, 68, 68, ${alpha})`;
+        ctx.fill();
+
+        // Draw connections
+        for (let j = i + 1; j < particles.length; j++) {
+          const q = particles[j];
+          const d = Math.sqrt((p.x - q.x) ** 2 + (p.y - q.y) ** 2);
+          if (d < 120) {
+            const lineAlpha = (1 - d / 120) * 0.15;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(q.x, q.y);
+            ctx.strokeStyle = `rgba(239, 68, 68, ${lineAlpha})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Mouse connection lines to nearby particles
+      for (const p of particles) {
+        const d = Math.sqrt((p.x - mx) ** 2 + (p.y - my) ** 2);
+        if (d < 180) {
+          const lineAlpha = (1 - d / 180) * 0.3;
+          ctx.beginPath();
+          ctx.moveTo(mx, my);
+          ctx.lineTo(p.x, p.y);
+          ctx.strokeStyle = `rgba(167, 139, 250, ${lineAlpha})`;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+
+      animId = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return { canvasRef, mouseRef };
+}
+
 export default function Landing() {
   const [params] = useSearchParams();
   const [online, setOnline] = useState(null);
   const error = params.get("error");
-  const containerRef = useRef(null);
   const cardRef = useRef(null);
-  const spotlightRef = useRef(null);
-  const trailsRef = useRef([]);
-  const rafRef = useRef(null);
-  const mouseRef = useRef({ x: 0, y: 0 });
+  const { canvasRef, mouseRef } = useParticleCanvas();
+  const [ripples, setRipples] = useState([]);
+  const rippleIdRef = useRef(0);
 
   useEffect(() => {
     fetch(`${API}/api/online`)
@@ -21,132 +135,69 @@ export default function Landing() {
       .catch(() => {});
   }, []);
 
-  // Mouse trail particles
-  const [trails, setTrails] = useState([]);
-  const trailIdRef = useRef(0);
-
   const handleMouseMove = useCallback((e) => {
     mouseRef.current = { x: e.clientX, y: e.clientY };
 
-    // Spotlight follows cursor
-    if (spotlightRef.current) {
-      spotlightRef.current.style.left = `${e.clientX}px`;
-      spotlightRef.current.style.top = `${e.clientY}px`;
-    }
-
-    // Card tilt effect
+    // Card tilt
     if (cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const rotateX = ((e.clientY - centerY) / rect.height) * -8;
-      const rotateY = ((e.clientX - centerX) / rect.width) * 8;
-      cardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const rx = ((e.clientY - cy) / rect.height) * -6;
+      const ry = ((e.clientX - cx) / rect.width) * 6;
+      cardRef.current.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`;
     }
-
-    // Spawn trail particle
-    const id = trailIdRef.current++;
-    setTrails((prev) => [
-      ...prev.slice(-15),
-      { id, x: e.clientX, y: e.clientY, born: Date.now() },
-    ]);
   }, []);
 
-  // Clean up trail particles
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTrails((prev) => prev.filter((t) => Date.now() - t.born < 800));
-    }, 100);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Reset card tilt on mouse leave
   const handleMouseLeave = useCallback(() => {
+    mouseRef.current = { x: -1000, y: -1000 };
     if (cardRef.current) {
       cardRef.current.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg)";
     }
   }, []);
 
+  const handleClick = useCallback((e) => {
+    const id = rippleIdRef.current++;
+    setRipples((prev) => [...prev.slice(-5), { id, x: e.clientX, y: e.clientY, born: Date.now() }]);
+    setTimeout(() => setRipples((prev) => prev.filter((r) => r.id !== id)), 1000);
+  }, []);
+
   return (
     <div
-      ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative min-h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden cursor-none"
+      onClick={handleClick}
+      className="relative min-h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden"
     >
-      {/* Custom cursor */}
-      <div
-        className="pointer-events-none fixed z-50 mix-blend-difference"
-        style={{ left: 0, top: 0 }}
-      >
-        {/* Outer ring */}
+      {/* Interactive particle canvas */}
+      <canvas ref={canvasRef} className="absolute inset-0 -z-5" />
+
+      {/* Click ripples */}
+      {ripples.map((r) => (
         <div
-          className="absolute w-10 h-10 border border-white/60 rounded-full transition-transform duration-300 ease-out -translate-x-1/2 -translate-y-1/2"
-          style={{
-            left: mouseRef.current.x,
-            top: mouseRef.current.y,
-          }}
-          ref={(el) => {
-            if (!el) return;
-            const animate = () => {
-              el.style.left = `${mouseRef.current.x}px`;
-              el.style.top = `${mouseRef.current.y}px`;
-              requestAnimationFrame(animate);
-            };
-            if (!rafRef.current) rafRef.current = requestAnimationFrame(animate);
-          }}
+          key={r.id}
+          className="pointer-events-none fixed z-30 rounded-full border border-red-400/40 animate-ripple"
+          style={{ left: r.x, top: r.y, transform: "translate(-50%, -50%)" }}
         />
-      </div>
+      ))}
 
-      {/* Mouse trail particles */}
-      {trails.map((t) => {
-        const age = (Date.now() - t.born) / 800;
-        return (
-          <div
-            key={t.id}
-            className="pointer-events-none fixed z-40 rounded-full bg-red-400/60"
-            style={{
-              left: t.x,
-              top: t.y,
-              width: `${6 * (1 - age)}px`,
-              height: `${6 * (1 - age)}px`,
-              opacity: 1 - age,
-              transform: `translate(-50%, -50%) scale(${1 - age * 0.5})`,
-              transition: "opacity 0.1s",
-            }}
-          />
-        );
-      })}
-
-      {/* Cursor spotlight glow */}
-      <div
-        ref={spotlightRef}
-        className="pointer-events-none fixed z-0 w-[400px] h-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500/[0.04] blur-[80px] transition-opacity duration-500"
-      />
-
-      {/* Animated mesh gradient background */}
+      {/* Background */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-[#0a0a0f]" />
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-gradient-to-br from-red-600/25 to-transparent rounded-full blur-[120px] animate-drift-1" />
-        <div className="absolute top-[10%] right-[-15%] w-[500px] h-[500px] bg-gradient-to-bl from-violet-600/20 to-transparent rounded-full blur-[120px] animate-drift-2" />
-        <div className="absolute bottom-[-10%] left-[20%] w-[550px] h-[550px] bg-gradient-to-tr from-blue-600/15 to-transparent rounded-full blur-[120px] animate-drift-3" />
-        <div className="absolute top-[40%] left-[50%] w-[400px] h-[400px] bg-gradient-to-b from-rose-500/10 to-transparent rounded-full blur-[100px] animate-drift-4" />
-        {/* Noise texture */}
-        <div className="absolute inset-0 opacity-[0.015]" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        }} />
+        <div className="absolute inset-0 bg-[#06060a]" />
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-gradient-to-br from-red-600/20 to-transparent rounded-full blur-[120px] animate-drift-1" />
+        <div className="absolute top-[10%] right-[-15%] w-[500px] h-[500px] bg-gradient-to-bl from-violet-600/15 to-transparent rounded-full blur-[120px] animate-drift-2" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[550px] h-[550px] bg-gradient-to-tr from-blue-600/10 to-transparent rounded-full blur-[120px] animate-drift-3" />
       </div>
 
-      {/* Glass card with 3D tilt */}
-      <div className="relative max-w-md w-full" style={{ transformStyle: "preserve-3d" }}>
+      {/* Glass card */}
+      <div className="relative max-w-md w-full z-10" style={{ transformStyle: "preserve-3d" }}>
         <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 via-violet-500/20 to-blue-500/20 rounded-3xl blur-xl opacity-60 animate-glow" />
         <div
           ref={cardRef}
-          className="relative backdrop-blur-xl bg-white/[0.04] border border-white/[0.08] rounded-3xl px-8 py-12 shadow-2xl shadow-black/40 transition-transform duration-200 ease-out"
+          className="relative backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-3xl px-8 py-12 shadow-2xl shadow-black/40 transition-transform duration-200 ease-out"
           style={{ transformStyle: "preserve-3d" }}
         >
-          {/* Card border glow on hover */}
-          <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none" />
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
 
           <div className="relative" style={{ transform: "translateZ(40px)" }}>
             <div className="inline-block px-4 py-1.5 rounded-full border border-white/10 text-[10px] tracking-[0.2em] uppercase text-zinc-400 mb-8 bg-white/[0.03] backdrop-blur-sm animate-fade-in-down">
@@ -173,7 +224,7 @@ export default function Landing() {
 
             <a
               href={`${API}/api/auth/google`}
-              className="group mt-8 w-full inline-flex items-center justify-center gap-3 bg-white/[0.9] backdrop-blur-sm text-zinc-900 font-semibold px-6 py-3.5 rounded-2xl hover:bg-white hover:scale-[1.03] hover:shadow-xl hover:shadow-red-500/10 active:scale-[0.97] transition-all duration-200 shadow-lg shadow-black/20 animate-fade-in-up animation-delay-300 cursor-none"
+              className="group mt-8 w-full inline-flex items-center justify-center gap-3 bg-white/[0.9] backdrop-blur-sm text-zinc-900 font-semibold px-6 py-3.5 rounded-2xl hover:bg-white hover:scale-[1.03] hover:shadow-xl hover:shadow-red-500/10 active:scale-[0.97] transition-all duration-200 shadow-lg shadow-black/20 animate-fade-in-up animation-delay-300"
             >
               <GoogleIcon />
               <span className="group-hover:tracking-wider transition-all duration-200">Sign in with Google</span>
