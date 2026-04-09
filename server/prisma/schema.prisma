@@ -24,6 +24,7 @@ model User {
 model Report {
   id         String   @id @default(cuid())
   reason     String
+  context    String?
   createdAt  DateTime @default(now())
   reporterId String
   reportedId String

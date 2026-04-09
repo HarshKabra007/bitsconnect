@@ -8,8 +8,7 @@ export function useSocket() {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const opts = { withCredentials: true, auth: token ? { token } : {} };
+    const opts = { withCredentials: true };
     const s = API ? io(API, opts) : io(opts);
     socketRef.current = s;
     s.on("connect", () => setConnected(true));

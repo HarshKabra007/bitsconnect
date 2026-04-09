@@ -4,11 +4,13 @@ const VALID_REASONS = new Set(["Harassment", "Spam", "Inappropriate Content", "O
 const BAN_THRESHOLD = 5;
 const BAN_WINDOW_MS = 24 * 60 * 60 * 1000;
 
-async function fileReport({ reporterId, reportedId, reason }) {
+async function fileReport({ reporterId, reportedId, reason, context }) {
   if (!VALID_REASONS.has(reason)) throw new Error("Invalid reason");
   if (reporterId === reportedId) throw new Error("Cannot report self");
 
-  await prisma.report.create({ data: { reporterId, reportedId, reason } });
+  await prisma.report.create({
+    data: { reporterId, reportedId, reason, context: context || null },
+  });
 
   // Count recent reports against the reported user.
   const since = new Date(Date.now() - BAN_WINDOW_MS);

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useSocket } from "../hooks/useSocket.js";
 import { useWebRTC } from "../hooks/useWebRTC.js";
 import { useAuth } from "../context/AuthContext.jsx";
-import MatchingScreen from "./MatchingScreen.jsx";
+import InterestTags from "./InterestTags.jsx";
 import MessageBubble from "./MessageBubble.jsx";
 import ReportModal from "./ReportModal.jsx";
 
@@ -40,6 +40,8 @@ export default function ChatRoom() {
 
   const [stage, setStage] = useState("lobby"); // lobby | chatting
   const [gender, setGender] = useState("male");
+  const [preferGender, setPreferGender] = useState("anyone");
+  const [interests, setInterests] = useState([]);
   const [waiting, setWaiting] = useState(false);
   const [waitingFact, setWaitingFact] = useState(randomFact());
   const [room, setRoom] = useState(null);
@@ -122,7 +124,13 @@ export default function ChatRoom() {
     setStrangerTyping(false);
     setWaiting(true);
     setWaitingFact(randomFact());
-    setTimeout(() => socket?.emit("join-queue", { interests: [gender] }), 150);
+    setTimeout(() => {
+      socket?.emit("join-queue", {
+        interests,
+        gender,
+        preferGender,
+      });
+    }, 150);
   };
 
   const send = (e) => {
@@ -184,9 +192,8 @@ export default function ChatRoom() {
       {/* Lobby */}
       {stage === "lobby" && (
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <h2 className="text-2xl font-semibold">I am a…</h2>
-          <p className="mt-2 text-sm text-zinc-400">Pick one to start matching.</p>
-          <div className="mt-6 flex gap-3">
+          <h2 className="text-2xl font-semibold">I am a...</h2>
+          <div className="mt-4 flex gap-3">
             {[
               { key: "male", label: "Male" },
               { key: "female", label: "Female" },
@@ -206,6 +213,35 @@ export default function ChatRoom() {
               </button>
             ))}
           </div>
+
+          <h2 className="text-2xl font-semibold mt-8">Match me with...</h2>
+          <div className="mt-4 flex gap-3">
+            {[
+              { key: "male", label: "Male" },
+              { key: "female", label: "Female" },
+              { key: "anyone", label: "Anyone" },
+            ].map((g) => (
+              <button
+                key={g.key}
+                onClick={() => setPreferGender(g.key)}
+                className={
+                  "px-5 py-2 rounded-full border text-sm font-medium transition " +
+                  (preferGender === g.key
+                    ? "bg-white text-zinc-900 border-white"
+                    : "border-zinc-700 text-zinc-300 hover:border-zinc-500")
+                }
+              >
+                {g.label}
+              </button>
+            ))}
+          </div>
+
+          <h2 className="text-lg font-semibold mt-8">Interests (optional)</h2>
+          <p className="mt-1 text-sm text-zinc-400">Shared interests = faster match</p>
+          <div className="mt-4 max-w-md">
+            <InterestTags selected={interests} onChange={setInterests} />
+          </div>
+
           <button
             onClick={findChat}
             disabled={!connected}
@@ -213,7 +249,7 @@ export default function ChatRoom() {
           >
             START
           </button>
-          {!connected && <p className="mt-3 text-xs text-zinc-500">Connecting…</p>}
+          {!connected && <p className="mt-3 text-xs text-zinc-500">Connecting...</p>}
         </div>
       )}
 
@@ -241,9 +277,9 @@ export default function ChatRoom() {
                     ))}
                   </div>
                   <div className="text-xs uppercase tracking-widest text-zinc-500 mb-4">
-                    Finding next BITSian…
+                    Finding next BITSian...
                   </div>
-                  <div className="text-sm text-zinc-300 italic max-w-xs">💡 {waitingFact}</div>
+                  <div className="text-sm text-zinc-300 italic max-w-xs">{waitingFact}</div>
                 </div>
               )}
               {!waiting && (
@@ -264,7 +300,7 @@ export default function ChatRoom() {
               onClick={next}
               className="w-full py-4 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-lg tracking-wider shadow-lg"
             >
-              NEXT →
+              NEXT
             </button>
           </div>
 
@@ -280,7 +316,7 @@ export default function ChatRoom() {
               />
               {!localStream && (
                 <div className="absolute inset-0 flex items-center justify-center text-sm text-zinc-500 text-center px-4">
-                  {mediaError || "Requesting camera…"}
+                  {mediaError || "Requesting camera..."}
                 </div>
               )}
               <span className="absolute top-2 left-2 text-xs bg-black/60 px-2 py-1 rounded">
@@ -291,13 +327,13 @@ export default function ChatRoom() {
                   onClick={toggleMic}
                   className="text-xs bg-black/60 hover:bg-black/80 px-3 py-1 rounded"
                 >
-                  {micOn ? "🎙 Mic" : "🔇 Mic"}
+                  {micOn ? "Mic" : "Muted"}
                 </button>
                 <button
                   onClick={toggleCam}
                   className="text-xs bg-black/60 hover:bg-black/80 px-3 py-1 rounded"
                 >
-                  {camOn ? "📹 Cam" : "🚫 Cam"}
+                  {camOn ? "Cam" : "Off"}
                 </button>
               </div>
             </div>
@@ -307,19 +343,19 @@ export default function ChatRoom() {
               <div className="flex-1 overflow-y-auto p-3 space-y-2">
                 {!waiting && messages.length === 0 && !strangerTyping && (
                   <div className="text-xs text-zinc-600 text-center pt-4">
-                    Say hi to {strangerAlias || "your match"} 👋
+                    Say hi to {strangerAlias || "your match"}
                   </div>
                 )}
                 {waiting && (
                   <div className="text-xs text-zinc-600 text-center pt-4">
-                    Waiting for a match…
+                    Waiting for a match...
                   </div>
                 )}
                 {messages.map((m, i) => (
                   <MessageBubble key={i} content={m.content} mine={m.mine} />
                 ))}
                 {strangerTyping && (
-                  <div className="text-xs text-zinc-500 italic">Stranger is typing…</div>
+                  <div className="text-xs text-zinc-500 italic">Stranger is typing...</div>
                 )}
                 {notice && (
                   <div className="text-center text-xs text-zinc-500 mt-4">{notice}</div>
@@ -330,7 +366,7 @@ export default function ChatRoom() {
                 <input
                   value={input}
                   onChange={onInputChange}
-                  placeholder={waiting ? "Waiting for a match…" : "Type a message…"}
+                  placeholder={waiting ? "Waiting for a match..." : "Type a message..."}
                   maxLength={2000}
                   disabled={waiting}
                   className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-600 disabled:opacity-50"

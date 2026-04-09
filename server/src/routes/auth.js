@@ -31,7 +31,7 @@ router.get("/google/callback", (req, res, next) => {
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    res.redirect(`${CLIENT_URL}/chat?token=${encodeURIComponent(token)}`);
+    res.redirect(`${CLIENT_URL}/chat`);
   })(req, res, next);
 });
 
@@ -42,21 +42,23 @@ router.get("/me", requireAuth, async (req, res) => {
 });
 
 // Dev-only anonymous login — bypasses Google entirely.
-router.post("/dev", async (req, res) => {
-  const crypto = require("crypto");
-  const { prisma } = require("../config/db");
-  const fakeEmail = `dev_${crypto.randomBytes(8).toString("hex")}@example.com`;
-  const hashedEmail = crypto.createHash("sha256").update(fakeEmail).digest("hex");
-  const user = await prisma.user.create({ data: { hashedEmail } });
-  const token = signToken(user.id);
-  res.cookie("token", token, {
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+if (process.env.NODE_ENV !== "production") {
+  router.post("/dev", async (req, res) => {
+    const crypto = require("crypto");
+    const { prisma } = require("../config/db");
+    const fakeEmail = `dev_${crypto.randomBytes(8).toString("hex")}@example.com`;
+    const hashedEmail = crypto.createHash("sha256").update(fakeEmail).digest("hex");
+    const user = await prisma.user.create({ data: { hashedEmail } });
+    const token = signToken(user.id);
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    res.json({ ok: true, token });
   });
-  res.json({ ok: true, token });
-});
+}
 
 router.post("/logout", (req, res) => {
   res.clearCookie("token");

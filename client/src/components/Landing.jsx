@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
-import { io } from "socket.io-client";
 
 const API = import.meta.env.VITE_API_URL ?? "";
 
 export default function Landing() {
-  const { login } = useAuth();
   const [params] = useSearchParams();
   const [online, setOnline] = useState(null);
   const error = params.get("error");
 
-  // Public socket just for the online count? We need auth. Skip for now — fetch from /api/stats if added.
   useEffect(() => {
-    // Optional: expose a public /api/online endpoint later. For now leave blank.
+    fetch(`${API}/api/online`)
+      .then((r) => r.json())
+      .then((d) => setOnline(d.count))
+      .catch(() => {});
   }, []);
 
   return (

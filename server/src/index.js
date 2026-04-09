@@ -12,6 +12,7 @@ const { socketAuth } = require("./middleware/socketAuth");
 const chatHandler = require("./socket/chatHandler");
 
 const app = express();
+app.set("trust proxy", 1);
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 
 app.use(cors({ origin: CLIENT_URL, credentials: true }));
@@ -27,6 +28,8 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: CLIENT_URL, credentials: true },
 });
+
+app.get("/api/online", (_req, res) => res.json({ count: io.of("/").sockets.size }));
 
 io.use(socketAuth);
 chatHandler.register(io);

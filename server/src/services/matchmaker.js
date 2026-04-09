@@ -1,6 +1,7 @@
 /**
  * In-memory matching queue.
  *  - Pairs users sharing at least one interest tag.
+ *  - Gender-aware: respects "match me with" preferences.
  *  - Falls back to random match after FALLBACK_MS.
  *  - No messages stored. Only active-room bookkeeping.
  */
@@ -8,17 +9,28 @@ const { generateAlias, releaseAlias } = require("./alias");
 
 const FALLBACK_MS = 15_000;
 
-// queue entries: { socket, userId, interests: Set<string>, joinedAt }
+// queue entries: { socket, userId, interests: Set<string>, gender, preferGender, joinedAt }
 const queue = [];
-// activeRooms: roomId -> { a: socket, b: socket, aliases: { [socketId]: alias } }
+// activeRooms: roomId -> { a: socket, b: socket }
 const activeRooms = new Map();
 
+/**
+ * Check if two users are gender-compatible.
+ * "anyone" on either side means they accept any gender.
+ */
+function genderCompatible(a, b) {
+  const aWantsB = a.preferGender === "anyone" || a.preferGender === b.gender;
+  const bWantsA = b.preferGender === "anyone" || b.preferGender === a.gender;
+  return aWantsB && bWantsA;
+}
+
 function findMatch(entry) {
-  // First pass: shared interest.
+  // First pass: shared interest + gender compatible.
   if (entry.interests.size > 0) {
     for (let i = 0; i < queue.length; i++) {
       const other = queue[i];
       if (other.userId === entry.userId) continue;
+      if (!genderCompatible(entry, other)) continue;
       for (const tag of entry.interests) {
         if (other.interests.has(tag)) {
           queue.splice(i, 1);
@@ -27,10 +39,11 @@ function findMatch(entry) {
       }
     }
   }
-  // Fallback: random partner if they've been waiting long enough (or no tags).
+  // Fallback: gender-compatible partner if they've been waiting long enough (or no tags).
   for (let i = 0; i < queue.length; i++) {
     const other = queue[i];
     if (other.userId === entry.userId) continue;
+    if (!genderCompatible(entry, other)) continue;
     const waited = Date.now() - other.joinedAt >= FALLBACK_MS;
     const noTags = entry.interests.size === 0 || other.interests.size === 0;
     if (waited || noTags) {
@@ -41,13 +54,15 @@ function findMatch(entry) {
   return null;
 }
 
-function enqueue(socket, userId, interests = []) {
+function enqueue(socket, userId, { interests = [], gender = "other", preferGender = "anyone" } = {}) {
   // Remove any existing entry for this socket/user.
   removeFromQueue(socket);
   const entry = {
     socket,
     userId,
     interests: new Set(interests),
+    gender,
+    preferGender,
     joinedAt: Date.now(),
   };
   const partner = findMatch(entry);
