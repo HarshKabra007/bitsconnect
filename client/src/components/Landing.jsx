@@ -127,6 +127,7 @@ export default function Landing() {
   const { canvasRef, mouseRef } = useParticleCanvas();
   const [ripples, setRipples] = useState([]);
   const rippleIdRef = useRef(0);
+  const [signingIn, setSigningIn] = useState(false);
 
   useEffect(() => {
     fetch(`${API}/api/online`)
@@ -222,10 +223,23 @@ export default function Landing() {
 
             <a
               href={`${API}/api/auth/google`}
+              onClick={() => setSigningIn(true)}
               className="group mt-8 w-full inline-flex items-center justify-center gap-3 bg-white/[0.9] backdrop-blur-sm text-zinc-900 font-semibold px-6 py-3.5 rounded-2xl hover:bg-white hover:scale-[1.03] hover:shadow-xl hover:shadow-red-500/10 active:scale-[0.97] transition-all duration-200 shadow-lg shadow-black/20 animate-fade-in-up animation-delay-300"
             >
-              <GoogleIcon />
-              <span className="group-hover:tracking-wider transition-all duration-200">Sign in with Google</span>
+              {signingIn ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-zinc-900" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span>Connecting...</span>
+                </>
+              ) : (
+                <>
+                  <GoogleIcon />
+                  <span className="group-hover:tracking-wider transition-all duration-200">Sign in with Google</span>
+                </>
+              )}
             </a>
 
             <p className="mt-5 text-[11px] text-zinc-500 animate-fade-in-up animation-delay-400">
