@@ -183,58 +183,100 @@ export default function ChatRoom() {
       </header>
 
       {/* Main chat view */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 overflow-hidden">
-          {/* LEFT: stranger video + red Next button */}
-          <div className="flex flex-col gap-3 min-h-0">
-            <div className="relative flex-1 bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800">
-              <video
-                ref={remoteVideoRef}
-                autoPlay
-                playsInline
-                className={"w-full h-full object-cover " + (waiting ? "hidden" : "")}
-              />
-              {waiting && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                  <div className="flex gap-1.5 mb-4">
-                    {[0, 1, 2].map((i) => (
-                      <span
-                        key={i}
-                        className="w-2 h-2 rounded-full bg-zinc-500 animate-bounce"
-                        style={{ animationDelay: `${i * 150}ms` }}
-                      />
-                    ))}
+      <div className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-2 md:gap-4 p-2 md:p-4 overflow-hidden">
+          {/* MOBILE: both videos side by side | DESKTOP: left column */}
+          <div className="flex flex-col gap-2 md:gap-3 min-h-0 md:min-h-0">
+            {/* Video row — side by side on mobile, stacked on desktop */}
+            <div className="flex gap-2 md:flex-col md:gap-3 flex-1 min-h-0">
+              {/* Stranger video */}
+              <div className="relative flex-1 bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 min-h-[140px] md:min-h-0 aspect-video md:aspect-auto">
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  className={"w-full h-full object-cover " + (waiting ? "hidden" : "")}
+                />
+                {waiting && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-3 md:p-6">
+                    <div className="flex gap-1.5 mb-2 md:mb-4">
+                      {[0, 1, 2].map((i) => (
+                        <span
+                          key={i}
+                          className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-zinc-500 animate-bounce"
+                          style={{ animationDelay: `${i * 150}ms` }}
+                        />
+                      ))}
+                    </div>
+                    <div className="text-[10px] md:text-xs uppercase tracking-widest text-zinc-500 mb-2 md:mb-4">
+                      Finding next BITSian...
+                    </div>
+                    <div className="text-xs md:text-sm text-zinc-300 italic max-w-xs hidden md:block">{waitingFact}</div>
                   </div>
-                  <div className="text-xs uppercase tracking-widest text-zinc-500 mb-4">
-                    Finding next BITSian...
+                )}
+                {!waiting && (
+                  <span className="absolute top-1 left-1 md:top-2 md:left-2 text-[10px] md:text-xs bg-black/60 px-1.5 py-0.5 md:px-2 md:py-1 rounded">
+                    {strangerAlias || "Stranger"}
+                  </span>
+                )}
+                {!waiting && (
+                  <button
+                    onClick={() => setReportOpen(true)}
+                    className="absolute top-1 right-1 md:top-2 md:right-2 text-[10px] md:text-xs bg-black/60 hover:bg-red-600 px-1.5 py-0.5 md:px-2 md:py-1 rounded"
+                  >
+                    Report
+                  </button>
+                )}
+              </div>
+
+              {/* Self video — beside stranger on mobile, hidden here on desktop */}
+              <div className="relative flex-1 bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 min-h-[140px] md:min-h-0 aspect-video md:aspect-auto md:hidden">
+                <video
+                  ref={localVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover scale-x-[-1]"
+                />
+                {!localStream && (
+                  <div className="absolute inset-0 flex items-center justify-center text-[10px] md:text-sm text-zinc-500 text-center px-2">
+                    {mediaError || "Requesting camera..."}
                   </div>
-                  <div className="text-sm text-zinc-300 italic max-w-xs">{waitingFact}</div>
-                </div>
-              )}
-              {!waiting && (
-                <span className="absolute top-2 left-2 text-xs bg-black/60 px-2 py-1 rounded">
-                  {strangerAlias || "Stranger"}
+                )}
+                <span className="absolute top-1 left-1 text-[10px] bg-black/60 px-1.5 py-0.5 rounded">
+                  {myAlias || "You"}
                 </span>
-              )}
-              {!waiting && (
-                <button
-                  onClick={() => setReportOpen(true)}
-                  className="absolute top-2 right-2 text-xs bg-black/60 hover:bg-red-600 px-2 py-1 rounded"
-                >
-                  Report
-                </button>
-              )}
+                <div className="absolute bottom-1 right-1 flex gap-1">
+                  <button
+                    onClick={toggleMic}
+                    className="text-[10px] bg-black/60 hover:bg-black/80 px-2 py-0.5 rounded"
+                  >
+                    {micOn ? "Mic" : "Muted"}
+                  </button>
+                  <button
+                    onClick={toggleCam}
+                    className="text-[10px] bg-black/60 hover:bg-black/80 px-2 py-0.5 rounded"
+                  >
+                    {camOn ? "Cam" : "Off"}
+                  </button>
+                </div>
+              </div>
             </div>
-            <button
-              onClick={next}
-              className="w-full py-4 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-lg tracking-wider shadow-lg"
-            >
-              NEXT
-            </button>
+
+            {/* Controls row — mobile */}
+            <div className="flex gap-2 md:gap-3">
+              <button
+                onClick={next}
+                className="flex-1 py-3 md:py-4 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-sm md:text-lg tracking-wider shadow-lg"
+              >
+                NEXT
+              </button>
+            </div>
           </div>
 
-          {/* RIGHT: self video + chat */}
-          <div className="flex flex-col gap-3 min-h-0">
-            <div className="relative flex-1 bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800">
+          {/* RIGHT: self video (desktop only) + chat */}
+          <div className="flex flex-col gap-2 md:gap-3 min-h-0 flex-1">
+            {/* Self video — desktop only */}
+            <div className="relative bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 hidden md:block md:flex-1">
               <video
                 ref={localVideoRef}
                 autoPlay
@@ -267,8 +309,8 @@ export default function ChatRoom() {
             </div>
 
             {/* Chat box */}
-            <div className="flex flex-col bg-zinc-900 rounded-lg border border-zinc-800 h-64">
-              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            <div className="flex flex-col bg-zinc-900 rounded-lg border border-zinc-800 flex-1 md:h-64 md:flex-none min-h-[180px]">
+              <div className="flex-1 overflow-y-auto p-2 md:p-3 space-y-2">
                 {!waiting && messages.length === 0 && !strangerTyping && (
                   <div className="text-xs text-zinc-600 text-center pt-4">
                     Say hi to {strangerAlias || "your match"}
