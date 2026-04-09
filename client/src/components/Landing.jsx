@@ -191,13 +191,11 @@ export default function Landing() {
 
       {/* Glass card */}
       <div className="relative max-w-md w-full z-10" style={{ transformStyle: "preserve-3d" }}>
-        <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 via-violet-500/20 to-blue-500/20 rounded-3xl blur-xl opacity-60 animate-glow" />
         <div
           ref={cardRef}
           className="relative backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-3xl px-8 py-12 shadow-2xl shadow-black/40 transition-transform duration-200 ease-out"
           style={{ transformStyle: "preserve-3d" }}
         >
-          <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
 
           <div className="relative" style={{ transform: "translateZ(40px)" }}>
             <div className="inline-block px-4 py-1.5 rounded-full border border-white/10 text-[10px] tracking-[0.2em] uppercase text-zinc-400 mb-8 bg-white/[0.03] backdrop-blur-sm animate-fade-in-down">
