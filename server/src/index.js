@@ -36,5 +36,5 @@ chatHandler.register(io);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`BITSConnect server listening on :${PORT}`);
+  console.log(`bitsTV server listening on :${PORT}`);
 });
