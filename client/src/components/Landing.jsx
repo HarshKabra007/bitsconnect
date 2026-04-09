@@ -107,29 +107,11 @@ export default function Landing() {
   const [params] = useSearchParams();
   const [online, setOnline] = useState(null);
   const error = params.get("error");
-  const cardRef = useRef(null);
-
   useEffect(() => {
     fetch(`${API}/api/online`)
       .then((r) => r.json())
       .then((d) => setOnline(d.count))
       .catch(() => {});
-  }, []);
-
-  const handleMouseMove = useCallback((e) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const rx = ((e.clientY - cy) / rect.height) * -6;
-    const ry = ((e.clientX - cx) / rect.width) * 6;
-    cardRef.current.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`;
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    if (cardRef.current) {
-      cardRef.current.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg)";
-    }
   }, []);
 
   return (
@@ -144,16 +126,8 @@ export default function Landing() {
       </div>
 
       {/* Card */}
-      <div
-        className="relative max-w-md w-full"
-        style={{ zIndex: 10 }}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-      >
-        <div
-          ref={cardRef}
-          className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-3xl px-8 py-12 shadow-2xl shadow-black/40 transition-transform duration-200 ease-out"
-        >
+      <div className="relative max-w-md w-full" style={{ zIndex: 10 }}>
+        <div className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-3xl px-8 py-12 shadow-2xl shadow-black/40">
           <div className="inline-block px-4 py-1.5 rounded-full border border-white/10 text-[10px] tracking-[0.2em] uppercase text-zinc-400 mb-8 bg-white/[0.03]">
             BITS Pilani · Pilani Campus
           </div>
