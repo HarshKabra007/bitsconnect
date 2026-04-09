@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { io } from "socket.io-client";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API = import.meta.env.VITE_API_URL ?? "";
 
 export default function Landing() {
   const { login } = useAuth();
@@ -34,12 +34,13 @@ export default function Landing() {
           </p>
         )}
 
-        <button
-          onClick={login}
+        <a
+          href={`${API}/api/auth/google`}
           className="mt-10 inline-flex items-center gap-3 bg-white text-zinc-900 font-medium px-6 py-3 rounded-lg hover:bg-zinc-100 transition"
         >
-          Enter (dev login)
-        </button>
+          <GoogleIcon />
+          Sign in with Google
+        </a>
 
         <p className="mt-4 text-xs text-zinc-500">
           Only <code>@pilani.bits-pilani.ac.in</code> accounts allowed.
