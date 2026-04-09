@@ -38,6 +38,7 @@ export default function ChatRoom() {
   const endRef = useRef(null);
 
   const [started, setStarted] = useState(false);
+  const [needsTap, setNeedsTap] = useState(false);
   const [waiting, setWaiting] = useState(false);
   const [waitingFact, setWaitingFact] = useState(randomFact());
   const [room, setRoom] = useState(null);
@@ -103,15 +104,31 @@ export default function ChatRoom() {
     if (remoteVideoRef.current && remoteStream) remoteVideoRef.current.srcObject = remoteStream;
   }, [remoteStream]);
 
-  // Auto-start as soon as socket connects
+  // Auto-start as soon as socket connects.
+  // On mobile, getUserMedia may fail without a user gesture — show a tap-to-start screen.
   useEffect(() => {
     if (!connected || started) return;
     setStarted(true);
     (async () => {
-      await ensureLocalStream();
-      enterWaiting();
+      const stream = await ensureLocalStream();
+      if (stream) {
+        enterWaiting();
+      } else {
+        // getUserMedia failed (likely mobile without gesture) — require a tap
+        setNeedsTap(true);
+      }
     })();
   }, [connected]);
+
+  const handleTapToStart = async () => {
+    setNeedsTap(false);
+    const stream = await ensureLocalStream();
+    if (stream) {
+      enterWaiting();
+    } else {
+      setNotice("Camera/mic access is required. Please allow permissions and try again.");
+    }
+  };
 
   const enterWaiting = () => {
     stopRTC();
@@ -182,8 +199,29 @@ export default function ChatRoom() {
         </button>
       </header>
 
+      {/* Tap to start — shown on mobile when getUserMedia fails without gesture */}
+      {needsTap && (
+        <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8">
+          <div className="w-20 h-20 rounded-full bg-red-600/10 flex items-center justify-center">
+            <svg className="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-semibold">Allow Camera & Mic</p>
+            <p className="text-sm text-zinc-400 mt-2">Tap below to enable video chat</p>
+          </div>
+          <button
+            onClick={handleTapToStart}
+            className="px-8 py-4 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-lg tracking-wider shadow-lg active:scale-95 transition-transform"
+          >
+            START
+          </button>
+        </div>
+      )}
+
       {/* Main chat view */}
-      <div className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-2 md:gap-4 p-2 md:p-4 overflow-hidden">
+      <div className={"flex-1 flex flex-col md:grid md:grid-cols-2 gap-2 md:gap-4 p-2 md:p-4 overflow-hidden" + (needsTap ? " hidden" : "")}>
           {/* MOBILE: both videos side by side | DESKTOP: left column */}
           <div className="flex flex-col gap-2 md:gap-3 min-h-0 md:min-h-0">
             {/* Video row — side by side on mobile, stacked on desktop */}
