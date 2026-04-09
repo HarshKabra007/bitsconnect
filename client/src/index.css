@@ -64,3 +64,10 @@ html, body, #root { height: 100%; }
 .animation-delay-300 { animation-delay: 0.3s; }
 .animation-delay-400 { animation-delay: 0.4s; }
 .animation-delay-500 { animation-delay: 0.5s; }
+
+/* Click ripple */
+@keyframes ripple {
+  0% { width: 0; height: 0; opacity: 0.6; }
+  100% { width: 300px; height: 300px; opacity: 0; }
+}
+.animate-ripple { animation: ripple 1s ease-out forwards; }
