@@ -191,65 +191,94 @@ export default function ChatRoom() {
 
       {/* Lobby */}
       {stage === "lobby" && (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <h2 className="text-2xl font-semibold">I am a...</h2>
-          <div className="mt-4 flex gap-3">
-            {[
-              { key: "male", label: "Male" },
-              { key: "female", label: "Female" },
-              { key: "other", label: "Other" },
-            ].map((g) => (
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+          {/* Background blobs */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-[-30%] right-[-20%] w-[500px] h-[500px] bg-gradient-to-br from-red-600/15 to-transparent rounded-full blur-[100px] animate-drift-1" />
+            <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-gradient-to-tr from-violet-600/10 to-transparent rounded-full blur-[100px] animate-drift-2" />
+          </div>
+
+          <div className="relative max-w-lg w-full">
+            {/* Glass card */}
+            <div className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-3xl px-8 py-10 shadow-2xl shadow-black/40">
+
+              {/* Gender selection */}
+              <div className="mb-8">
+                <h2 className="text-xl font-bold tracking-wide">I am a...</h2>
+                <div className="mt-4 flex justify-center gap-3">
+                  {[
+                    { key: "male", label: "Male", icon: "\u2642" },
+                    { key: "female", label: "Female", icon: "\u2640" },
+                    { key: "other", label: "Other", icon: "\u26A5" },
+                  ].map((g) => (
+                    <button
+                      key={g.key}
+                      onClick={() => setGender(g.key)}
+                      className={
+                        "group flex flex-col items-center gap-1.5 px-6 py-3 rounded-2xl border text-sm font-medium transition-all duration-200 " +
+                        (gender === g.key
+                          ? "bg-white text-zinc-900 border-white shadow-lg shadow-white/10 scale-105"
+                          : "border-white/10 text-zinc-400 hover:border-white/20 hover:bg-white/[0.03]")
+                      }
+                    >
+                      <span className="text-lg">{g.icon}</span>
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-8" />
+
+              {/* Preference selection */}
+              <div className="mb-8">
+                <h2 className="text-xl font-bold tracking-wide">Match me with...</h2>
+                <div className="mt-4 flex justify-center gap-3">
+                  {[
+                    { key: "male", label: "Male", icon: "\u2642" },
+                    { key: "female", label: "Female", icon: "\u2640" },
+                    { key: "anyone", label: "Anyone", icon: "\u2728" },
+                  ].map((g) => (
+                    <button
+                      key={g.key}
+                      onClick={() => setPreferGender(g.key)}
+                      className={
+                        "group flex flex-col items-center gap-1.5 px-6 py-3 rounded-2xl border text-sm font-medium transition-all duration-200 " +
+                        (preferGender === g.key
+                          ? "bg-gradient-to-b from-red-500 to-red-600 text-white border-red-400/30 shadow-lg shadow-red-500/20 scale-105"
+                          : "border-white/10 text-zinc-400 hover:border-white/20 hover:bg-white/[0.03]")
+                      }
+                    >
+                      <span className="text-lg">{g.icon}</span>
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-8" />
+
+              {/* Interests */}
+              <div className="mb-8">
+                <h2 className="text-lg font-bold tracking-wide">Interests</h2>
+                <p className="mt-1 text-xs text-zinc-500">Pick a few for faster matching</p>
+                <div className="mt-4">
+                  <InterestTags selected={interests} onChange={setInterests} />
+                </div>
+              </div>
+
+              {/* Start button */}
               <button
-                key={g.key}
-                onClick={() => setGender(g.key)}
-                className={
-                  "px-5 py-2 rounded-full border text-sm font-medium transition " +
-                  (gender === g.key
-                    ? "bg-white text-zinc-900 border-white"
-                    : "border-zinc-700 text-zinc-300 hover:border-zinc-500")
-                }
+                onClick={findChat}
+                disabled={!connected}
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white font-bold text-lg tracking-widest shadow-lg shadow-red-500/20 hover:shadow-red-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100"
               >
-                {g.label}
+                {connected ? "START" : "CONNECTING..."}
               </button>
-            ))}
+            </div>
           </div>
-
-          <h2 className="text-2xl font-semibold mt-8">Match me with...</h2>
-          <div className="mt-4 flex gap-3">
-            {[
-              { key: "male", label: "Male" },
-              { key: "female", label: "Female" },
-              { key: "anyone", label: "Anyone" },
-            ].map((g) => (
-              <button
-                key={g.key}
-                onClick={() => setPreferGender(g.key)}
-                className={
-                  "px-5 py-2 rounded-full border text-sm font-medium transition " +
-                  (preferGender === g.key
-                    ? "bg-white text-zinc-900 border-white"
-                    : "border-zinc-700 text-zinc-300 hover:border-zinc-500")
-                }
-              >
-                {g.label}
-              </button>
-            ))}
-          </div>
-
-          <h2 className="text-lg font-semibold mt-8">Interests (optional)</h2>
-          <p className="mt-1 text-sm text-zinc-400">Shared interests = faster match</p>
-          <div className="mt-4 max-w-md">
-            <InterestTags selected={interests} onChange={setInterests} />
-          </div>
-
-          <button
-            onClick={findChat}
-            disabled={!connected}
-            className="mt-10 bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-3 rounded-lg tracking-wider disabled:opacity-50"
-          >
-            START
-          </button>
-          {!connected && <p className="mt-3 text-xs text-zinc-500">Connecting...</p>}
         </div>
       )}
 

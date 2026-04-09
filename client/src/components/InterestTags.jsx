@@ -1,4 +1,4 @@
-const TAGS = ["Coding","Music","Sports","Anime","Startups","Memes","Acads","Fest Talk","Movies","Gaming"];
+const TAGS = ["Coding", "Music", "Sports", "Anime", "Startups", "Memes", "Acads", "Fest Talk", "Movies", "Gaming"];
 
 export default function InterestTags({ selected, onChange }) {
   const toggle = (tag) => {
@@ -6,7 +6,7 @@ export default function InterestTags({ selected, onChange }) {
     else onChange([...selected, tag]);
   };
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap justify-center gap-2">
       {TAGS.map((tag) => {
         const active = selected.includes(tag);
         return (
@@ -14,10 +14,10 @@ export default function InterestTags({ selected, onChange }) {
             key={tag}
             onClick={() => toggle(tag)}
             className={
-              "px-3 py-1.5 rounded-full text-xs font-medium border transition " +
+              "px-4 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 " +
               (active
-                ? "bg-white text-zinc-900 border-white"
-                : "border-zinc-700 text-zinc-300 hover:border-zinc-500")
+                ? "bg-white/90 text-zinc-900 border-white/80 shadow-md shadow-white/10 scale-105"
+                : "border-white/10 text-zinc-400 hover:border-white/20 hover:bg-white/[0.04]")
             }
           >
             {tag}
