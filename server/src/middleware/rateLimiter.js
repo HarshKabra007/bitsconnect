@@ -29,4 +29,14 @@ function canSkip(userId) {
   return true;
 }
 
+// Cleanup stale skip buckets every 60s to prevent memory leak.
+setInterval(() => {
+  const now = Date.now();
+  for (const [userId, bucket] of skipBuckets) {
+    if (bucket.every((t) => now - t >= 60_000)) {
+      skipBuckets.delete(userId);
+    }
+  }
+}, 60_000);
+
 module.exports = { authLimiter, reportLimiter, canSkip };

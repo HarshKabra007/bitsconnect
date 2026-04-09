@@ -4,10 +4,30 @@ const { fileReport, checkBan } = require("../services/moderation");
 const { canSkip } = require("../middleware/rateLimiter");
 
 const MAX_MSG_LEN = 2000;
+const MAX_ROOM_MSGS = 20;
+
+// Temporary in-memory message buffer per room (last 20 messages).
+const roomMessages = new Map();
+
+function pushRoomMessage(roomId, msg) {
+  if (!roomMessages.has(roomId)) roomMessages.set(roomId, []);
+  const buf = roomMessages.get(roomId);
+  buf.push(msg);
+  if (buf.length > MAX_ROOM_MSGS) buf.shift();
+}
+
+function getRoomContext(roomId) {
+  const buf = roomMessages.get(roomId);
+  if (!buf || buf.length === 0) return null;
+  return JSON.stringify(buf);
+}
+
+function clearRoomMessages(roomId) {
+  roomMessages.delete(roomId);
+}
 
 function sanitize(text) {
   if (typeof text !== "string") return "";
-  // Strip control chars and basic HTML angle brackets for XSS safety.
   return text
     .replace(/[\u0000-\u001F\u007F]/g, "")
     .replace(/[<>]/g, (c) => (c === "<" ? "&lt;" : "&gt;"))
@@ -34,9 +54,13 @@ function register(io) {
       return socket.disconnect(true);
     }
 
-    socket.on("join-queue", ({ interests = [] } = {}) => {
+    socket.on("join-queue", ({ interests = [], gender = "other", preferGender = "anyone" } = {}) => {
       if (socket.data.roomId) return; // already in a chat
-      enqueue(socket, socket.userId, Array.isArray(interests) ? interests.slice(0, 8) : []);
+      enqueue(socket, socket.userId, {
+        interests: Array.isArray(interests) ? interests.slice(0, 8) : [],
+        gender: typeof gender === "string" ? gender : "other",
+        preferGender: typeof preferGender === "string" ? preferGender : "anyone",
+      });
       socket.emit("queue-position", { position: queueLength() });
     });
 
@@ -44,6 +68,7 @@ function register(io) {
       if (!roomId || roomId !== socket.data.roomId) return;
       const safe = sanitize(content);
       if (!safe) return;
+      pushRoomMessage(roomId, { alias: socket.data.alias, content: safe, timestamp: Date.now() });
       socket.to(roomId).emit("receive-message", {
         content: safe,
         timestamp: Date.now(),
@@ -72,7 +97,9 @@ function register(io) {
       if (!canSkip(socket.userId)) {
         return socket.emit("error", { message: "Slow down — too many skips." });
       }
+      const roomId = socket.data.roomId;
       leaveRoom(socket, "skipped");
+      if (roomId) clearRoomMessages(roomId);
     });
 
     socket.on("report", async ({ reason } = {}) => {
@@ -83,7 +110,8 @@ function register(io) {
       const reportedId = socket.data.partnerUserId;
       if (!reportedId) return;
       try {
-        await fileReport({ reporterId: socket.userId, reportedId, reason });
+        const context = getRoomContext(socket.data.roomId);
+        await fileReport({ reporterId: socket.userId, reportedId, reason, context });
         socket.data.reported = true;
         socket.emit("report-received");
       } catch (e) {
@@ -93,7 +121,9 @@ function register(io) {
 
     socket.on("disconnect", () => {
       removeFromQueue(socket);
+      const roomId = socket.data.roomId;
       leaveRoom(socket, "disconnect");
+      if (roomId) clearRoomMessages(roomId);
       broadcastOnlineCount(io);
     });
   });

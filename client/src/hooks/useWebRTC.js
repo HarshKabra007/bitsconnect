@@ -5,6 +5,14 @@ const ICE_SERVERS = [
   { urls: "stun:stun1.l.google.com:19302" },
 ];
 
+if (import.meta.env.VITE_TURN_URL) {
+  ICE_SERVERS.push({
+    urls: import.meta.env.VITE_TURN_URL,
+    username: import.meta.env.VITE_TURN_USERNAME,
+    credential: import.meta.env.VITE_TURN_CREDENTIAL,
+  });
+}
+
 /**
  * Manages a single peer connection tied to the current room.
  * Call start(initiator) when matched, stop() when leaving.
