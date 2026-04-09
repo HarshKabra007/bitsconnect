@@ -171,7 +171,7 @@ export default function Landing() {
       className="relative min-h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden"
     >
       {/* Interactive particle canvas */}
-      <canvas ref={canvasRef} className="absolute inset-0 -z-5" />
+      <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: -1 }} />
 
       {/* Click ripples */}
       {ripples.map((r) => (
