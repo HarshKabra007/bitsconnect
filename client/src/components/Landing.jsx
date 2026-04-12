@@ -103,11 +103,19 @@ function ParticleBackground() {
   );
 }
 
+function isInAppBrowser() {
+  const ua = navigator.userAgent || "";
+  return /FBAN|FBAV|Instagram|Line|WhatsApp|Snapchat|Twitter|LinkedInApp|MicroMessenger|TikTok/i.test(ua);
+}
+
 export default function Landing() {
   const [params] = useSearchParams();
   const [online, setOnline] = useState(null);
+  const [inApp, setInApp] = useState(false);
   const error = params.get("error");
+
   useEffect(() => {
+    setInApp(isInAppBrowser());
     fetch(`${API}/api/online`)
       .then((r) => r.json())
       .then((d) => setOnline(d.count))
@@ -150,13 +158,22 @@ export default function Landing() {
             </div>
           )}
 
-          <a
-            href={`${API}/api/auth/google`}
-            className="mt-8 w-full inline-flex items-center justify-center gap-3 bg-white text-zinc-900 font-semibold px-6 py-3.5 rounded-2xl hover:bg-zinc-100 hover:scale-[1.02] active:scale-[0.97] transition-all duration-200 shadow-lg"
-          >
-            <GoogleIcon />
-            Sign in with Google
-          </a>
+          {inApp ? (
+            <div className="mt-6 text-sm text-yellow-300 border border-yellow-500/20 bg-yellow-500/[0.06] rounded-xl p-4">
+              <p className="font-semibold mb-1">Open in your browser</p>
+              <p className="text-yellow-300/70 text-xs leading-relaxed">
+                Google sign-in doesn't work inside Instagram/WhatsApp/etc. Tap <strong>⋮</strong> or <strong>Share</strong> → <strong>"Open in Chrome/Safari"</strong>.
+              </p>
+            </div>
+          ) : (
+            <a
+              href={`${API}/api/auth/google`}
+              className="mt-8 w-full inline-flex items-center justify-center gap-3 bg-white text-zinc-900 font-semibold px-6 py-3.5 rounded-2xl hover:bg-zinc-100 hover:scale-[1.02] active:scale-[0.97] transition-all duration-200 shadow-lg"
+            >
+              <GoogleIcon />
+              Sign in with Google
+            </a>
+          )}
 
           <p className="mt-5 text-[11px] text-zinc-500">
             Only <code className="bg-white/[0.06] px-1.5 py-0.5 rounded text-zinc-400 font-mono text-[10px]">@pilani.bits-pilani.ac.in</code> accounts
