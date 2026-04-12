@@ -159,11 +159,8 @@ export default function Landing() {
           )}
 
           {inApp ? (
-            <div className="mt-6 text-sm text-yellow-300 border border-yellow-500/20 bg-yellow-500/[0.06] rounded-xl p-4">
-              <p className="font-semibold mb-1">Open in your browser</p>
-              <p className="text-yellow-300/70 text-xs leading-relaxed">
-                Google sign-in doesn't work inside Instagram/WhatsApp/etc. Tap <strong>⋮</strong> or <strong>Share</strong> → <strong>"Open in Chrome/Safari"</strong>.
-              </p>
+            <div className="mt-6 text-sm text-yellow-300 border border-yellow-500/20 bg-yellow-500/[0.06] rounded-xl p-4 text-center">
+              <p className="font-semibold">Open only in Chrome / Safari</p>
             </div>
           ) : (
             <a
